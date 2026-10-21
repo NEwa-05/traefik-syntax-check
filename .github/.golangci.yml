@@ -1,0 +1,51 @@
+version: "2"
+
+run:
+  # Resolve the paths below from the module root, not from .github.
+  relative-path-mode: gomod
+  timeout: 5m
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - copyloopvar
+    - errorlint
+    - gocritic
+    - gosec
+    - misspell
+    - noctx
+    - nolintlint
+    - revive
+    - testifylint
+    - unconvert
+    - usestdlibvars
+  settings:
+    misspell:
+      locale: US
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+  exclusions:
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      # Test fixtures are written with fixed permissions on purpose.
+      - path: _test\.go
+        linters:
+          - gosec
+    paths:
+      - third_party
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/NEwa-05/traefik-syntax-check
+  exclusions:
+    paths:
+      - third_party

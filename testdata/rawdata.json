@@ -1,0 +1,75 @@
+{
+  "routers": {
+    "api@internal": {
+      "entryPoints": ["traefik"],
+      "service": "api@internal",
+      "rule": "PathPrefix(`/api`)",
+      "priority": 2147483646,
+      "status": "enabled",
+      "using": ["traefik"]
+    },
+    "whoami@docker": {
+      "entryPoints": ["websecure"],
+      "service": "whoami",
+      "rule": "Host(`whoami.domain.com`) && PathPrefix(`/api`)",
+      "tls": {},
+      "status": "enabled",
+      "using": ["websecure"]
+    },
+    "multi-host@docker": {
+      "entryPoints": ["web"],
+      "service": "app",
+      "rule": "Host(`a.domain.com`, `b.domain.com`)",
+      "status": "enabled",
+      "using": ["web"]
+    },
+    "headers@file": {
+      "entryPoints": ["web"],
+      "service": "app",
+      "rule": "Headers(`X-Env`, `prod`)",
+      "status": "enabled",
+      "using": ["web"]
+    },
+    "already-v3@file": {
+      "entryPoints": ["web"],
+      "service": "app",
+      "rule": "Header(`X-Env`, `prod`)",
+      "ruleSyntax": "v3",
+      "status": "enabled",
+      "using": ["web"]
+    },
+    "methods@kubernetescrd": {
+      "entryPoints": ["web"],
+      "service": "app",
+      "rule": "Method(`GET`, `POST`)",
+      "status": "enabled",
+      "using": ["web"]
+    }
+  },
+  "middlewares": {
+    "auth@file": {"basicAuth": {"users": ["test:hash"]}, "status": "enabled", "usedBy": ["whoami@docker"]}
+  },
+  "services": {
+    "app@docker": {"loadBalancer": {"servers": [{"url": "http://10.0.0.1:80"}]}, "status": "enabled", "usedBy": ["multi-host@docker"], "serverStatus": {"http://10.0.0.1:80": "UP"}}
+  },
+  "tcpRouters": {
+    "postgres@file": {
+      "entryPoints": ["db"],
+      "service": "postgres",
+      "rule": "HostSNI(`db1.domain.com`, `db2.domain.com`)",
+      "tls": {"passthrough": true},
+      "status": "enabled",
+      "using": ["db"]
+    },
+    "catchall@file": {
+      "entryPoints": ["db"],
+      "service": "postgres",
+      "rule": "HostSNI(`*`)",
+      "status": "enabled",
+      "using": ["db"]
+    }
+  },
+  "udpRouters": {
+    "dns@file": {"entryPoints": ["dns"], "service": "dns", "status": "enabled", "using": ["dns"]}
+  }
+}
